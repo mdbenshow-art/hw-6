@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <title>基於 CRISP-DM 生命週期的多元線性迴歸教學簡報</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <!-- Theme override with Custom Slate CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+    <!-- Code Highlight CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/monokai.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --r-background-color: #0F172A; /* Slate-900 */
+            --r-main-font: 'Inter', 'Noto Sans TC', sans-serif;
+            --r-heading-font: 'Inter', 'Noto Sans TC', sans-serif;
+            --r-heading-color: #06B6D4; /* Cyan-500 */
+            --r-main-color: #F1F5F9; /* Slate-100 */
+            --r-link-color: #A855F7; /* Purple-500 */
+            --c-card-bg: #1E293B; /* Slate-800 */
+            --c-border: #334155; /* Slate-700 */
+            --c-purple: #A855F7;
+            --c-cyan: #06B6D4;
+            --c-muted: #94A3B8; /* Slate-400 */
+            --c-red: #EF4444;
+        }
+
+        .reveal {
+            font-family: var(--r-main-font);
+            color: var(--r-main-color);
+        }
+
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: var(--r-heading-font);
+            color: var(--r-heading-color);
+            text-transform: none;
+            font-weight: 700;
+        }
+
+        /* Slide Titles */
+        .reveal h2.slide-title {
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--c-border);
+            padding-bottom: 0.5rem;
+            color: var(--c-cyan);
+            text-align: left;
+        }
+
+        .reveal p.slide-desc {
+            font-size: 1.1rem;
+            color: var(--c-muted);
+            text-align: left;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* Grid Layouts */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+            width: 100%;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .flex-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        /* Cards Style */
+        .card {
+            background-color: var(--c-card-bg);
+            border: 1px solid var(--c-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--c-cyan);
+            box-shadow: 0 10px 15px -3px rgb(6 182 212 / 0.1), 0 4px 6px -4px rgb(6 182 212 / 0.1);
+        }
+
+        .card.highlight {
+            border-color: var(--c-purple);
+        }
+        .card.highlight:hover {
+            border-color: var(--c-purple);
+            box-shadow: 0 10px 15px -3px rgb(168 85 247 / 0.1), 0 4px 6px -4px rgb(168 85 247 / 0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem !important;
+            font-weight: 700;
+            color: var(--c-cyan);
+            margin-top: 0 !important;
+            margin-bottom: 1rem !important;
+            border-bottom: 1px solid var(--c-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .card.highlight .card-title {
+            color: var(--c-purple);
+        }
+
+        .card ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .card li {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            color: #E2E8F0;
+        }
+
+        .card li strong {
+            color: var(--c-cyan);
+        }
+        .card.highlight li strong {
+            color: var(--c-purple);
+        }
+
+        /* CRISP-DM Process Flow (Slide 2) */
+        .flow-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 0.6rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .flow-step {
+            flex: 1;
+            background-color: var(--c-card-bg);
+            border: 1px solid var(--c-border);
+            border-radius: 10px;
+            padding: 1.2rem 0.8rem;
+            font-size: 0.85rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            border-color: var(--c-cyan);
+            transform: scale(1.03);
+        }
+
+        .flow-step.active {
+            border-color: var(--c-purple);
+            box-shadow: 0 0 10px rgb(168 85 247 / 0.3);
+        }
+
+        .flow-step h4 {
+            font-size: 1rem;
+            color: var(--c-cyan);
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+        }
+        .flow-step.active h4 {
+            color: var(--c-purple);
+        }
+
+        .flow-step p {
+            font-size: 0.75rem;
+            color: var(--c-muted);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        /* Tables */
+        table.custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        table.custom-table th, table.custom-table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--c-border);
+            text-align: center;
+        }
+
+        table.custom-table th {
+            background-color: #111827;
+            color: var(--c-cyan);
+            font-weight: 700;
+        }
+
+        table.custom-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Highlight Boxes */
+        .alert-box {
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px dashed var(--c-red);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: left;
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            color: var(--c-white);
+        }
+
+        .alert-box strong {
+            color: var(--c-red);
+        }
+
+        /* Code Block override */
+        .reveal pre {
+            box-shadow: none;
+            border: 1px solid var(--c-border);
+            border-radius: 8px;
+            background-color: #0d1117;
+            margin: 0;
+            width: 100%;
+        }
+
+        .reveal pre code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- SLIDE 1: Cover Slide -->
+            <section data-transition="zoom">
+                <h1 style="font-size: 3.2rem; line-height: 1.3; color: var(--c-cyan); margin-bottom: 1.5rem; font-weight: 900;">
+                    基於 CRISP-DM 生命週期的<br>多元線性迴歸教學簡報
+                </h1>
+                <p style="font-size: 1.3rem; color: var(--c-purple); margin-bottom: 3.5rem; font-weight: 600;">
+                    —— 以 50 Startups 新創利潤預測與特徵選取最佳化 (Sweet Spot) 為核心案例
+                </p>
+                <p style="font-size: 0.95rem; color: var(--c-muted);">
+                    資料科學與機器學習教學小組  •  2026年6月
+                </p>
+            </section>
+
+            <!-- SLIDE 2: CRISP-DM Overview -->
+            <section data-transition="slide-in fade-out">
+                <h2 class="slide-title">CRISP-DM 數據挖掘生命週期</h2>
+                <p class="slide-desc">
+                    CRISP-DM (Cross-Industry Process for Data Mining) 是業界公認的數據挖掘標準流程，共包含六大核心階段：
+                </p>
+                <div class="flow-container">
+                    <div class="flow-step">
+                        <h4>1. 商業理解</h4>
+                        <p>定義創投 (VC) 業務評估指標，訂立模型評估成敗標準。</p>
+                    </div>
+                    <div class="flow-step">
+                        <h4>2. 數據理解</h4>
+                        <p>載入並探索 50 Startups 資料集，檢驗特徵相關性。</p>
+                    </div>
+                    <div class="flow-step">
+                        <h4>3. 數據準備</h4>
+                        <p>數值標準化、State 獨熱編碼並消除多重共線性。</p>
+                    </div>
+                    <div class="flow-step active">
+                        <h4>4. 模型建置</h4>
+                        <p>訓練線性、Ridge 與樹集成模型，以 GridSearch 調參。</p>
+                    </div>
+                    <div class="flow-step active">
+                        <h4>5. 模型評估</h4>
+                        <p>利用 10 組演算法尋找 k=2 最佳特徵點 (Sweet Spot)。</p>
+                    </div>
+                    <div class="flow-step">
+                        <h4>6. 模型部署</h4>
+                        <p>封裝前處理 Pipeline 為 pkl，整合 FastAPI 隨時預測。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: Business Understanding -->
+            <section data-transition="slide">
+                <h2 class="slide-title">階段一：商業理解 (Business Understanding)</h2>
+                <p class="slide-desc">
+                    本階段確立新創公司評估架構。創投機構需要找出哪些支出項目能切實為企業帶來利潤增幅，避免盲目投資。
+                </p>
+                <div class="grid-3">
+                    <div class="card">
+                        <h3 class="card-title">商業痛點與問題</h3>
+                        <ul>
+                            <li>• <strong>早期投資缺乏定量指標</strong>：難以客觀量化研發、行政與行銷的投入產出比。</li>
+                            <li>• <strong>辨識組織效率</strong>：分析高比例行政開支是否代表組織效率低落。</li>
+                            <li>• <strong>地理環境效益</strong>：評估不同註冊州是否存在政策或紅利差異。</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">機器學習分析目標</h3>
+                        <ul>
+                            <li>• <strong>目標變數 (Target)</strong>：預測新創公司的總利潤 (Profit)。</li>
+                            <li>• <strong>解釋變數 (Features)</strong>：研發支出、行政管理支出、行銷支出、所屬州別。</li>
+                            <li>• <strong>關鍵任務</strong>：求解特徵係數權重，分析各特徵之邊際貢獻。</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">模型驗證成功準則</h3>
+                        <ul>
+                            <li>• <strong>模型解釋力 (R²)</strong>：測試集 $R^2 \ge 90\%$，代表能捕捉九成以上的利潤變異。</li>
+                            <li>• <strong>預測誤差上限 (MAE)</strong>：平均絕對預測誤差 $MAE \le \$7,000$ 美元，確保預測精度可靠。</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: Data Understanding -->
+            <section data-transition="slide">
+                <h2 class="slide-title">階段二：數據理解 (Data Understanding)</h2>
+                <p class="slide-desc">
+                    本階段探索 50 家美國早期新創公司資料集，檢查數據品質，並初步分析各特徵與目標值利潤的關聯性。
+                </p>
+                <div class="grid-2">
+                    <div>
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>欄位名稱</th>
+                                    <th>描述</th>
+                                    <th>型態</th>
+                                    <th>相關係數</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>R&D Spend</strong></td>
+                                    <td>研發領域支出</td>
+                                    <td>數值型</td>
+                                    <td style="color: var(--c-cyan);">0.9729 (極高)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Marketing Spend</strong></td>
+                                    <td>市場行銷支出</td>
+                                    <td>數值型</td>
+                                    <td style="color: var(--c-cyan);">0.7478 (高度)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Administration</strong></td>
+                                    <td>行政管理支出</td>
+                                    <td>數值型</td>
+                                    <td>0.2007 (微弱)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>State</strong></td>
+                                    <td>註冊州 (加/紐/佛)</td>
+                                    <td>類別型</td>
+                                    <td>地理效應分析</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="card" style="padding: 1.2rem;">
+                            <h3 class="card-title" style="margin-bottom: 0.5rem !important;">關鍵數據品質與特徵</h3>
+                            <p style="font-size: 0.85rem; margin: 0; line-height: 1.5; color: #E2E8F0;">
+                                • 樣本量 50 筆，無缺失值，數據品質極高。<br>
+                                • 平均利潤為 $112,012 美元，標準差約 $40,306。<br>
+                                • <strong>研發支出 (R&D Spend)</strong> 的相關係數逼近 0.97，具備壓倒性的關聯性。
+                            </p>
+                        </div>
+                        <div class="card" style="padding: 1.2rem;">
+                            <h3 class="card-title" style="margin-bottom: 0.5rem !important;">地區效應分佈</h3>
+                            <p style="font-size: 0.85rem; margin: 0; line-height: 1.5; color: #E2E8F0;">
+                                • 樣本在 California、New York 和 Florida 分佈均勻。<br>
+                                • Florida 州新創企業的 Profit 平均值微幅領先，需要在準備階段進行編碼以量化地理環境紅利。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Data Preparation -->
+            <section data-transition="slide">
+                <h2 class="slide-title">階段三：數據準備 (Data Preparation)</h2>
+                <p class="slide-desc">
+                    特徵準備是模型表現的基石。為了解決特徵金額量级不一以及非數值型特徵的處理，我們實施標準的特徵工程。
+                </p>
+                <div class="grid-3">
+                    <div class="card">
+                        <h3 class="card-title">① 金額特徵標準化</h3>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>問題</strong>：研發、行政與行銷支出量級不同（差至數十倍）。<br><br>
+                            • <strong>方案</strong>：使用 <code>StandardScaler</code> 將金額數值轉為均值為 0、方差為 1 的標準常態分佈。<br><br>
+                            • <strong>優點</strong>：消除金額量綱影響，提升收斂速度，使係數具可比性。
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">② 類別型特徵編碼</h3>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>問題</strong>：State 欄位為字串，模型無法進行矩陣計算。<br><br>
+                            • <strong>方案</strong>：使用 <code>OneHotEncoder</code> 獨熱編碼。<br><br>
+                            • <strong>防多重共線性</strong>：設置 <code>drop='first'</code> 捨棄加州為對照基準，僅生成 <code>State_Florida</code> 與 <code>State_New York</code>。
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">③ 前處理 Pipeline 封裝</h3>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>整合</strong>：使用 <code>ColumnTransformer</code> 將上述步驟綁定。<br><br>
+                            • <strong>防數據洩漏</strong>：確保前處理僅在訓練集上擬合 <code>fit()</code>，測試集僅執行轉換 <code>transform()</code>，保障評估的科學性。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Modeling -->
+            <section data-transition="slide">
+                <h2 class="slide-title">階段四：模型建置 (Modeling)</h2>
+                <p class="slide-desc">
+                    本階段實施多模型並行與調參策略。建立線性、正則化及決策樹集成模型，利用交叉驗證找出最優預測器。
+                </p>
+                <div class="grid-3">
+                    <div class="card">
+                        <h3 class="card-title">① 多元線性迴歸</h3>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>核心</strong>：直接建立特徵與利潤的線性權重方程。<br><br>
+                            • <strong>優勢</strong>：具備最高業務解釋力，可以直接獲取邊際貢獻係數（每投入 1 美元利潤的增幅）。<br><br>
+                            • <strong>假設</strong>：假定特徵與利潤具線性關係。
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">② 脊迴歸 (Ridge)</h3>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>核心</strong>：線上性損失函數中引入 L2 正則化懲罰項。<br><br>
+                            • <strong>優勢</strong>：當支出特徵存在多重共線性（如研發高的公司行銷往往也高）時，Ridge 能收縮係數，穩定估計，防止模型過擬合。
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">③ 隨機森林與網格搜索</h3>
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>核心</strong>：非線性的決策樹集成算法。<br><br>
+                            • <strong>優勢</strong>：自動處理特徵共線性與非線性交互作用。<br><br>
+                            • <strong>調優</strong>：使用 <code>GridSearchCV</code> 對決策樹數量與深度做 5 折交叉驗證，取得最佳超參數。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 7: Evaluation & Sweet Spot -->
+            <section data-transition="slide">
+                <h2 class="slide-title">階段五：模型評估與最佳平衡點 (Sweet Spot)</h2>
+                <p class="slide-desc">
+                    我們對 10 組特徵選擇演算法的表現進行了特徵個數 k 隨 1 到 5 變化的擬合分析，揭示了精實模型的最佳平衡點。
+                </p>
+                <div class="grid-2">
+                    <div class="card" style="padding: 1.2rem;">
+                        <h3 class="card-title" style="margin-bottom: 0.5rem !important;">10 組演算法評估與雙曲線趨勢</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.5; margin: 0; color: #cbd5e1;">
+                            • <strong>比對算法</strong>：Pearson, Spearman, F-test, Mutual Info, RFE, SFS, SBS, Lasso, Random Forest, ElasticNet。<br>
+                            • <strong>決定係數 (R²)</strong>：自 k=1 起升，在 <strong>k=2</strong> 達到最大峰值，後續在 k=3..5 由於引入行政與地理雜訊而略微回落。<br>
+                            • <strong>預測誤差 (RMSE)</strong>：在 <strong>k=2</strong> 處降至最低點，隨後由於模型複雜化引發過擬合，RMSE 開始反彈上升。
+                        </p>
+                    </div>
+                    <div class="card highlight" style="padding: 1.2rem;">
+                        <h3 class="card-title" style="margin-bottom: 0.5rem !important;">Sweet Spot: k=2 (R&D + Marketing)</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.5; margin: 0; color: #cbd5e1;">
+                            • <strong>最佳組合</strong>：僅保留「研發支出」與「行銷費用」兩項金額特徵。<br>
+                            • <strong>模型表現</strong>：測試集 <strong>$R^2 \approx 94.74\%$</strong>，<strong>$RMSE \approx \$8,198.8$</strong>。表現顯著優於包含行政與地區的 5 特徵模型 ($R^2 \approx 93.47\%$, $RMSE \approx \$9,138.0$)。<br>
+                            • <strong>商業啟示</strong>：行政支出與地區對預測無實質推動力，精實模型更具魯棒性。
+                        </p>
+                    </div>
+                </div>
+                <div class="alert-box">
+                    ★ <strong>核心結論</strong>：在多元線性迴歸中，<strong>並非特徵越多越好</strong>。精實的 2 特徵模型成功避開了維度災難，在測試集上取得了更優的泛化表現，此即為特徵選取的 <strong>Sweet Spot</strong>。
+                </div>
+            </section>
+
+            <!-- SLIDE 8: Deployment -->
+            <section data-transition="slide">
+                <h2 class="slide-title">階段六：模型部署 (Deployment)</h2>
+                <p class="slide-desc">
+                    模型訓練的終點是生產環境的決策支援。我們將前處理與模型整合打包，並基於 FastAPI 實現即時預測 API。
+                </p>
+                <div class="grid-3">
+                    <div class="card" style="padding: 1rem;">
+                        <h3 class="card-title" style="margin-bottom: 0.5rem !important;">① Pipeline 封裝導出</h3>
+                        <p style="font-size: 0.75rem; line-height: 1.4; color: #E2E8F0; margin: 0;">
+                            • 使用 <code>joblib.dump()</code> 將包含標準化、獨熱編碼與線性迴歸模型的完整 Pipeline 序列化為 <code>startup_profit_model.pkl</code>。<br><br>
+                            • 生產環境載入後，直接調用 <code>predict()</code>，保證數據清洗標準與訓練期 100% 一致。
+                        </p>
+                    </div>
+                    <div class="card" style="padding: 1rem; grid-column: span 2;">
+                        <h3 class="card-title" style="margin-bottom: 0.5rem !important;">② FastAPI 即時預測接口實作</h3>
+                        <pre style="margin-top: 0.5rem;"><code class="language-python" style="padding: 0.5rem; font-size: 0.75rem;">from fastapi import FastAPI
+import joblib, pandas as pd
+
+app = FastAPI()
+model = joblib.load("startup_profit_model.pkl")
+
+@app.post("/predict")
+def predict_profit(rd_spend: float, mkt_spend: float):
+    # 僅輸入 Sweet Spot 的兩大核心特徵，行政與地區設為 0
+    input_data = pd.DataFrame([{
+        "R&D Spend": rd_spend, "Administration": 0.0,
+        "Marketing Spend": mkt_spend, "State": "California"
+    }])
+    pred = model.predict(input_data)[0]
+    return {"predicted_profit": pred}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 9: Business Recommendations -->
+            <section data-transition="zoom">
+                <h2 class="slide-title">基於模型係數的創投 (VC) 投資決策建議</h2>
+                <p class="slide-desc">
+                    多元線性迴歸的係數代表各項支出的邊際貢獻（每多投入 1 美元利潤的增減）。基於模型係數得出三大策略：
+                </p>
+                <div class="grid-3">
+                    <div class="card">
+                        <h3 class="card-title">① 研發優先戰略</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>邊際貢獻：+$0.81</strong><br><br>
+                            • <strong>決策建議</strong>：每投入 1 美元於研發能帶來 0.81 美元的利潤回報。創投在評估項目時，應將公司的「技術研發深度」列為第一核心指標，避免投向重營銷輕研發的組裝企業。
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">② 精實組織管理</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>邊際貢獻：-$0.03</strong><br><br>
+                            • <strong>決策建議</strong>：行政支出與利潤呈負向關係，代表組織膨脹會侵蝕利潤。創投應督促企業落實精實管理，避免過早租用豪華辦公室或配置過多非生產性行政冗員。
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">③ 合理市場擴張</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.5; color: #cbd5e1;">
+                            • <strong>邊際貢獻：+$0.03</strong><br><br>
+                            • <strong>決策建議</strong>：行銷邊際貢獻雖為正，但極低 (0.03)。創投應反對早期項目進行盲目的燒錢補貼，應在產品具備市場適配度 (PMF) 後，再行擴大推廣。
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
+        </div>
+    </div>
+
+    <!-- Reveal.js JS & Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+    <script>
+        // Initialize Reveal.js
+        Reveal.initialize({
+            hash: true,
+            slideNumber: 'c/t',
+            transition: 'slide',
+            plugins: [ RevealHighlight ]
+        });
+    </script>
+</body>
+</html>
