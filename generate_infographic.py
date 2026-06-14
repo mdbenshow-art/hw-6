@@ -9,12 +9,12 @@ It uses 'kaiu.ttf' for rendering clean Chinese text.
 
 import os
 import io
-import pandas as pd
 # pyrefly: ignore [missing-import]
-import numpy as np
 import matplotlib
 matplotlib.use('Agg')
+# pyrefly: ignore [missing-import]
 import matplotlib.pyplot as plt
+# pyrefly: ignore [missing-import]
 from PIL import Image, ImageDraw, ImageFont
 
 # Set up paths
