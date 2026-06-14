@@ -9,10 +9,7 @@ high-resolution Traditional Chinese infographic using PIL and Matplotlib.
 
 import os
 import io
-# pyrefly: ignore [missing-import]
 import pandas as pd
-# pyrefly: ignore [missing-import]
-import numpy as np
 # pyrefly: ignore [missing-import]
 import matplotlib
 matplotlib.use('Agg')
