@@ -18,8 +18,6 @@ import os
 # pyrefly: ignore [missing-import]
 import pandas as pd
 # pyrefly: ignore [missing-import]
-import numpy as np
-# pyrefly: ignore [missing-import]
 from sklearn.model_selection import train_test_split, GridSearchCV
 # pyrefly: ignore [missing-import]
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
